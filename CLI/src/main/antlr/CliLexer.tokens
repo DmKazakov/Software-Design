@@ -1,0 +1,14 @@
+IDENTIFIER=1
+EXPANSION=2
+ASSIGN=3
+PIPE=4
+FQ=5
+WQ=6
+WORD=7
+NL=8
+WS=9
+ERROR=10
+'$'=2
+'='=3
+'|'=4
+'\n'=8
