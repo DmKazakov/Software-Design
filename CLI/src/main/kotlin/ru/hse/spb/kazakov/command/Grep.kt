@@ -6,6 +6,7 @@ import java.io.File
 import java.io.PrintStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.lang.Integer.min
 import java.util.*
 import java.util.regex.Pattern
@@ -41,7 +42,6 @@ class Grep(private val arguments: List<String>, prev: PipeCommand?) : PipeComman
         }
 
         if (usageHelpRequested) {
-            print(getUsage())
             return ExecutionResult(getUsage())
         }
 
@@ -64,6 +64,9 @@ class Grep(private val arguments: List<String>, prev: PipeCommand?) : PipeComman
                 } catch (exception: IOException) {
                     errors.add("grep: ${it.name}: No such file")
                     null
+                } catch (exception: AfterContextException) {
+                    errors.add("grep: invalid context length argument")
+                    null
                 }
             }.joinToString(separator = "\n")
             ExecutionResult(output, errors)
@@ -71,6 +74,10 @@ class Grep(private val arguments: List<String>, prev: PipeCommand?) : PipeComman
     }
 
     private fun grep(text: String, pattern: Pattern): String {
+        if (afterContext < 0) {
+            throw AfterContextException()
+        }
+
         val result = StringJoiner("\n")
         val lines = text.lines()
 
@@ -95,4 +102,6 @@ class Grep(private val arguments: List<String>, prev: PipeCommand?) : PipeComman
         CommandLine.usage(this, usageStream)
         return byteUsageStream.toString()
     }
+
+    private class AfterContextException : Exception()
 }

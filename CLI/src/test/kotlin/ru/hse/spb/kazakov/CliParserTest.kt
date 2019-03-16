@@ -403,6 +403,44 @@ class CliParserTest {
     }
 
     @Test
+    fun testGrepNegativeAfterContext(@TempDirectory.TempDir tempDir: Path) {
+        val content = "Filler .\n" +
+                "a ma tch ..\n" +
+                "not_ma tch\n" +
+                "not_ma tch again\n" +
+                "not_ma tch again again\n" +
+                "new ma tch\n" +
+                "ma tch again"
+        val file = createFile(tempDir, "file", content)
+        val command = getCommands("grep -w -A -2 'ma tch' $file")
+        assertTrue(command is Grep)
+        assertTrue(command?.getOutput()?.isEmpty() ?: false)
+        assertIterableEquals(listOf("grep: invalid context length argument"), command?.getErrors())
+    }
+
+    @Test
+    fun testGrepHelp() {
+        val command = getCommands("grep -h")
+        val expectedOutput = """
+            |Usage: <main class> [-hiw] [-A=<afterContext>] <pattern> [<files>...]
+            |      <pattern>        Basic regular expression
+            |      [<files>...]     Any number of input files
+            |  -A=<afterContext>    Print specified number of lines of trailing context after
+            |                         matching lines.
+            |  -h                   Output a getUsage message and exit.
+            |  -i                   Ignore case distinctions in both the pattern and the input
+            |                         files.
+            |  -w                   Select only those lines containing matches that form whole
+            |                         words.
+            |
+            """.trimMargin()
+
+        assertTrue(command is Grep)
+        assertEquals(expectedOutput, command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
     fun testMissingQuote() {
         val exception = assertThrows(ParsingException::class.java, { getCommands("echo \"") })
         assertEquals("Error:(6) unexpected token: \"", exception.message)
