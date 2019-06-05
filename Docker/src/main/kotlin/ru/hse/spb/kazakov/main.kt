@@ -37,8 +37,8 @@ fun resendQueueMessages(prodQueueName: String, consQueueName: String) {
             }
         }
     } catch (e: Exception) {
-        e.printStackTrace()
-        Thread.sleep(1)
+        printLocalstackWaitingExceptionMessage()
+        Thread.sleep(1000)
     }
 }
 
@@ -59,8 +59,8 @@ private fun createQueue(queueName: String): CreateQueueResult {
             val createQueueRequestA = CreateQueueRequest(queueName)
             return sqs.createQueue(createQueueRequestA)
         } catch (e: SdkClientException) {
-            e.printStackTrace()
-            Thread.sleep(2)
+            printLocalstackWaitingExceptionMessage()
+            Thread.sleep(1000)
         }
     }
 }
@@ -76,8 +76,12 @@ private fun sendMessage(queueUrl: String, message: String) {
             sqs.sendMessage(SendMessageRequest(queueUrl, message))
             return
         } catch (e: SdkClientException) {
-            e.printStackTrace()
-            Thread.sleep(2)
+            printLocalstackWaitingExceptionMessage()
+            Thread.sleep(1000)
         }
     }
+}
+
+private fun printLocalstackWaitingExceptionMessage() {
+    println("Waiting for Localstack services to start.")
 }
