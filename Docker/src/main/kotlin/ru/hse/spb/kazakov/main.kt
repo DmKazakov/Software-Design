@@ -13,7 +13,6 @@ fun main(args: Array<String>) {
     if (args.isEmpty()) {
         startQueues()
     } else if (args.size == 2) {
-        Thread.sleep(25000)
         resendQueueMessages(args[0], args[1])
     }
 }
