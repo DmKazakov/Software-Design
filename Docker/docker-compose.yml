@@ -7,19 +7,20 @@ services:
       - "4576:4576"
     environment:
       - SERVICES=sqs
+      - DEFAULT_REGION=eu-west-1
 
   run_queues:
     build: .
     depends_on:
       - localstack
 
-  A:
+  client_a:
     build: .
     depends_on:
       - run_queues
     command: A B
 
-  B:
+  client_b:
     build: .
     depends_on:
       - run_queues
