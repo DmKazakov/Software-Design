@@ -6,4 +6,4 @@ jdk:
 notifications:
   email: false
 
-script: for directory in */; do cd "${directory}" && ./gradle check && cd ..; done
+script: for directory in */; do cd "${directory}" && gradle check && cd ..; done
