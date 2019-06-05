@@ -8,6 +8,7 @@ services:
     environment:
       - SERVICES=sqs
       - DEFAULT_REGION=eu-west-1
+      - HOSTNAME_EXTERNAL=localstack
 
   run_queues:
     build: .
