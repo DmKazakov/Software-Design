@@ -17,7 +17,6 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.563'
