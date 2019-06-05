@@ -1,0 +1,26 @@
+version: '2.1'
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4576:4576"
+    environment:
+      - SERVICES=sqs
+
+  #run_queues:
+  #  build: .
+  #  depends_on:
+  #    - localstack
+  #
+  #A:
+  #  build: .
+  #  depends_on:
+  #    - run_queues
+  #  command: A B
+  #
+  #B:
+  #  build: .
+  #  depends_on:
+  #    - run_queues
+  #  command: B A
