@@ -18,27 +18,22 @@ fun main(args: Array<String>) {
 }
 
 fun resendQueueMessages(prodQueueName: String, consQueueName: String) {
-    try {
-        val sqs = AmazonSQSClientBuilder.standard()
-            .withEndpointConfiguration(
-                AwsClientBuilder.EndpointConfiguration("http://localstack:4576", "eu-west-1")
-            )
-            .build()
+    val sqs = AmazonSQSClientBuilder.standard()
+        .withEndpointConfiguration(
+            AwsClientBuilder.EndpointConfiguration("http://localstack:4576", "eu-west-1")
+        )
+        .build()
 
-        val prodQueueUrl = sqs.getQueueUrl(GetQueueUrlRequest(prodQueueName)).queueUrl
-        val consQueueUrl = sqs.getQueueUrl(GetQueueUrlRequest(consQueueName)).queueUrl
+    val prodQueueUrl = sqs.getQueueUrl(GetQueueUrlRequest(prodQueueName)).queueUrl
+    val consQueueUrl = sqs.getQueueUrl(GetQueueUrlRequest(consQueueName)).queueUrl
 
-        while (true) {
-            sqs.receiveMessage(ReceiveMessageRequest(prodQueueUrl)).messages.forEach {
-                val num = it.body.toInt()
-                println(num)
-                sqs.deleteMessage(DeleteMessageRequest(prodQueueUrl, it.receiptHandle))
-                sqs.sendMessage(SendMessageRequest(consQueueUrl, (num + 1).toString()))
-            }
+    while (true) {
+        sqs.receiveMessage(ReceiveMessageRequest(prodQueueUrl)).messages.forEach {
+            val num = it.body.toInt()
+            println(num)
+            sqs.deleteMessage(DeleteMessageRequest(prodQueueUrl, it.receiptHandle))
+            sqs.sendMessage(SendMessageRequest(consQueueUrl, (num + 1).toString()))
         }
-    } catch (e: Exception) {
-        printLocalstackWaitingExceptionMessage()
-        Thread.sleep(1000)
     }
 }
 
