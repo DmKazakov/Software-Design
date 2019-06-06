@@ -1,0 +1,28 @@
+version: '2.1'
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4576:4576"
+    environment:
+      - SERVICES=sqs
+      - DEFAULT_REGION=eu-west-1
+      - HOSTNAME_EXTERNAL=localstack
+
+  run_queues:
+    build: .
+    depends_on:
+      - localstack
+
+  client_a:
+    build: .
+    depends_on:
+      - run_queues
+    command: A B
+
+  client_b:
+    build: .
+    depends_on:
+      - run_queues
+    command: B A
