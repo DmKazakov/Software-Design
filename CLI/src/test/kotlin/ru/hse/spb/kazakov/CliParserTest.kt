@@ -304,6 +304,143 @@ class CliParserTest {
     }
 
     @Test
+    fun testGrepPipeInputMatch() {
+        val command = getCommands("echo 'some text' | grep text")
+        assertTrue(command is Grep)
+        assertEquals("some text", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepPipeInputNotMatch() {
+        val command = getCommands("echo 'some text' | grep ttext")
+        assertTrue(command is Grep)
+        assertEquals("", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepNotExistingFile() {
+        val command = getCommands("grep text file")
+        assertTrue(command is Grep)
+        assertEquals("", command?.getOutput())
+        assertIterableEquals(listOf("grep: file: No such file"), command?.getErrors())
+    }
+
+    @Test
+    fun testGrepNoPattern() {
+        val command = getCommands("grep -w")
+        assertTrue(command is Grep)
+        assertEquals("", command?.getOutput())
+        assertIterableEquals(listOf("Missing required parameter: <pattern>"), command?.getErrors())
+    }
+
+    @Test
+    fun testGrepNotSpecifiedAfterContext() {
+        val command = getCommands("grep -A pattern file")
+        assertTrue(command is Grep)
+        assertEquals("", command?.getOutput())
+        assertIterableEquals(listOf("Invalid value for option '-A': 'pattern' is not an int"), command?.getErrors())
+    }
+
+    @Test
+    fun testGrepMultipleMatch(@TempDirectory.TempDir tempDir: Path) {
+        val file = createFile(tempDir, "file", "text match text\nnew line mAtch\nmatch")
+        val command = getCommands("grep atch $file")
+        assertTrue(command is Grep)
+        assertEquals("text match text\nmatch", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepMultipleFiles(@TempDirectory.TempDir tempDir: Path) {
+        val firstFile = createFile(tempDir, "file1", "text match text\nnew line\nmatch")
+        val secondFile = createFile(tempDir, "file2", "atch\nnew line\nnatch.")
+        val command = getCommands("grep atch $firstFile $secondFile")
+        assertTrue(command is Grep)
+        assertEquals("text match text\nmatch\natch\nnatch.", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepCaseInsensitive(@TempDirectory.TempDir tempDir: Path) {
+        val file = createFile(tempDir, "file", "text match text\nnew line mAtch\nmatch\n...")
+        val command = getCommands("grep -i atch $file")
+        assertTrue(command is Grep)
+        assertEquals("text match text\nnew line mAtch\nmatch", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepWholeWord(@TempDirectory.TempDir tempDir: Path) {
+        val file = createFile(tempDir, "file", "match in $\nws match  \nNot_match \nin ^ match")
+        val command = getCommands("grep -w match $file")
+        assertTrue(command is Grep)
+        assertEquals("match in $\nws match  \nin ^ match", command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepAfterContext(@TempDirectory.TempDir tempDir: Path) {
+        val content = "Filler .\n" +
+                "a ma tch ..\n" +
+                "not_ma tch\n" +
+                "not_ma tch again\n" +
+                "not_ma tch again again\n" +
+                "new ma tch\n" +
+                "ma tch again"
+        val file = createFile(tempDir, "file", content)
+        val command = getCommands("grep -w -A 2 'ma tch' $file")
+        assertTrue(command is Grep)
+        assertEquals(
+            "a ma tch ..\n" +
+                    "not_ma tch\n" +
+                    "not_ma tch again\n" +
+                    "new ma tch\n" +
+                    "ma tch again", command?.getOutput()
+        )
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
+    fun testGrepNegativeAfterContext(@TempDirectory.TempDir tempDir: Path) {
+        val content = "Filler .\n" +
+                "a ma tch ..\n" +
+                "not_ma tch\n" +
+                "not_ma tch again\n" +
+                "not_ma tch again again\n" +
+                "new ma tch\n" +
+                "ma tch again"
+        val file = createFile(tempDir, "file", content)
+        val command = getCommands("grep -w -A -2 'ma tch' $file")
+        assertTrue(command is Grep)
+        assertTrue(command?.getOutput()?.isEmpty() ?: false)
+        assertIterableEquals(listOf("grep: invalid context length argument"), command?.getErrors())
+    }
+
+    @Test
+    fun testGrepHelp() {
+        val command = getCommands("grep -h")
+        val expectedOutput = """
+            |Usage: <main class> [-hiw] [-A=<afterContext>] <pattern> [<files>...]
+            |      <pattern>        Basic regular expression
+            |      [<files>...]     Any number of input files
+            |  -A=<afterContext>    Print specified number of lines of trailing context after
+            |                         matching lines.
+            |  -h                   Output a getUsage message and exit.
+            |  -i                   Ignore case distinctions in both the pattern and the input
+            |                         files.
+            |  -w                   Select only those lines containing matches that form whole
+            |                         words.
+            |
+            """.trimMargin()
+
+        assertTrue(command is Grep)
+        assertEquals(expectedOutput, command?.getOutput())
+        assertTrue(command?.getErrors()?.isEmpty() ?: false)
+    }
+
+    @Test
     fun testMissingQuote() {
         val exception = assertThrows(ParsingException::class.java, { getCommands("echo \"") })
         assertEquals("Error:(6) unexpected token: \"", exception.message)

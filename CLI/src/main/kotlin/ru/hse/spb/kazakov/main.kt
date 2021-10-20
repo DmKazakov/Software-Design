@@ -6,6 +6,7 @@ import ru.hse.spb.kazakov.parser.CliParser
 import ru.hse.spb.kazakov.parser.ParsingException
 import java.lang.IllegalArgumentException
 
+
 /**
  * Request-response cycle.
  */
@@ -39,3 +40,4 @@ fun main() {
         commands.getErrors().forEach { println(it) }
     }
 }
+

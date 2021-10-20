@@ -49,6 +49,7 @@ class CliInterpreter {
             "wc" -> WC(arguments, previous)
             "pwd" -> Pwd(previous)
             "exit" -> Exit(previous)
+            "grep" -> Grep(arguments, previous)
             else -> UserCommand(name, arguments, previous)
         }
 }

@@ -20,7 +20,7 @@ class UserCommand(
             val output = process.inputStream.bufferedReader().use { it.readText() }
             val error = process.errorStream.bufferedReader().use { it.readText() }
 
-            ExecutionResult(output, listOf(error))
+            ExecutionResult(output, if (error != "") listOf(error) else emptyList())
         } else {
             ExecutionResult("", listOf("$name: command not found"))
         }
